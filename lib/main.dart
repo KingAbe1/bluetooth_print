@@ -74,41 +74,13 @@ Thank you for your purchase!
       return;
     }
 
-    List<BluetoothDevice> connectedDevices = await flutterBlue.connectedDevices;
-    if (connectedDevices.isEmpty) {
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: Text('No Bluetooth devices connected'),
-            content: Text(
-                'Please connect a Bluetooth device before printing the receipt.'),
-            actions: <Widget>[
-              ElevatedButton(
-                child: Text('OK'),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-            ],
-          );
-        },
-      );
-      return;
-    }
-
-    if (printer == null) {
-      print('No printer selected');
-      return;
-    }
-
-    printReceipt();
+    startScan();
   }
 
   @override
   void initState() {
     super.initState();
-    startScan();
+    // startScan();
   }
 
   void startScan() async {
