@@ -21,7 +21,6 @@ class _PrintButtonState extends State<PrintButton> {
   BluetoothDevice? printer;
 
   void printReceipt() async {
-    print('Printing');
     String receipt = '''
 ----------------------------------------
               FOOD RECEIPT              
