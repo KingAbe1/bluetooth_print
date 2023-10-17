@@ -27,11 +27,11 @@ class _PrintButtonState extends State<PrintButton> {
 ----------------------------------------
 Item                 Quantity    Price  
 ----------------------------------------
-Burger                    2      \$5.99 
-Fries                     1      \$2.99 
-Coke                      2      \$1.99 
+Burger                    2      5.99 ETB
+Fries                     1      2.99 ETB
+Coke                      2      1.99 ETB
 ----------------------------------------
-Total                           \$17.95 
+Total                           17.95 ETB 
 ----------------------------------------
 Thank you for your purchase!
 ''';
