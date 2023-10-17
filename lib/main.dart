@@ -21,6 +21,7 @@ class _PrintButtonState extends State<PrintButton> {
   BluetoothDevice? printer;
 
   void printReceipt() async {
+    print('Printing');
     String receipt = '''
 ----------------------------------------
               FOOD RECEIPT              
@@ -88,8 +89,10 @@ Thank you for your purchase!
 
     // Listen to scan results
     var subscription = flutterBlue.scanResults.listen((results) async {
-      // Stop scanning
-      flutterBlue.stopScan();
+      // Stop scanning after a delay
+      Future.delayed(Duration(seconds: 5), () async {
+        flutterBlue.stopScan();
+      });
 
       // Show dialog to select device
       showDialog(
@@ -119,7 +122,7 @@ Thank you for your purchase!
     });
 
     // Stop listening after a certain time
-    Future.delayed(Duration(seconds: 5), () async {
+    Future.delayed(Duration(seconds: 10), () async {
       await subscription.cancel();
     });
   }
