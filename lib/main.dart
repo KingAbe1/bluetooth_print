@@ -19,6 +19,8 @@ class PrintButton extends StatefulWidget {
 class _PrintButtonState extends State<PrintButton> {
   final FlutterBlue flutterBlue = FlutterBlue.instance;
   BluetoothDevice? printer;
+  List<BluetoothDevice> devices = [];
+  bool isDialogShown = true;
 
   void printReceipt() async {
     String receipt = '''
@@ -80,50 +82,87 @@ Thank you for your purchase!
   @override
   void initState() {
     super.initState();
-    // startScan();
   }
 
+  BuildContext? dialogContext;
+
   void startScan() async {
-    flutterBlue.startScan(timeout: Duration(seconds: 4));
+    int dialogCounter = 0;
+    flutterBlue.startScan();
 
     // Listen to scan results
     var subscription = flutterBlue.scanResults.listen((results) async {
-      // Stop scanning after a delay
-      Future.delayed(Duration(seconds: 5), () async {
-        flutterBlue.stopScan();
-      });
+      // if (!devices.isEmpty) {
+      //   for (var i = 0; i < results.length; i++) {
+      //     int index = devices.indexWhere((element) => element == results[i].device.id);
 
-      // Show dialog to select device
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: Text('Select a device'),
-            content: Column(
-              children: results
-                  .map((result) => ListTile(
-                        title: Text(result.device.name),
-                        onTap: () async {
-                          printer = result.device;
-                          try {
-                            await printer!.connect();
-                            Navigator.of(context).pop();
-                          } catch (e) {
-                            print('Error connecting to device: $e');
-                          }
-                        },
-                      ))
-                  .toList(),
+      //     print(index);
+      //   }
+      // }
+      // Collect discovered devices into a list
+      for (ScanResult result in results) {
+        if (!devices.any((device) => device.id == result.device.id) &&
+            result.device.name != '') {
+          // Check if a device with the same id is already in the list
+          devices.add(result.device);
+          if (isDialogShown) {
+            dialogCounter++;
+            // print(dialogCounter);
+            showDeviceListDialog(devices,
+                dialogCounter); // Show the updated device list dialog // Show the updated device list dialog
+          }
+        }
+      }
+    });
+  }
+
+  void showDeviceListDialog(List<BluetoothDevice> devices, int counter) {
+    if (counter > 0 && Navigator.of(context).canPop()) {
+      Navigator.of(context).pop(); // Close the current dialog if counter > 0
+    }
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Select a device'),
+          content: SingleChildScrollView(
+            child: Column(
+              children: devices.map((device) {
+                return ListTile(
+                  title:
+                      Text(device.name.isEmpty ? 'Unknown name' : device.name),
+                  onTap: () async {
+                    // print('device connected');
+                    printer = device;
+                    try {
+                      print(printer);
+                      await printer!.connect();
+                      Navigator.of(context).pop();
+                    } catch (e) {
+                      print('Error connecting to device: $e');
+                    }
+                  },
+                );
+              }).toList(),
             ),
-          );
-        },
-      );
-    });
-
-    // Stop listening after a certain time
-    Future.delayed(Duration(seconds: 10), () async {
-      await subscription.cancel();
-    });
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Close'),
+              onPressed: () {
+                Navigator.of(context).pop();
+                flutterBlue.stopScan();
+                for (var i = 0; i < devices.length; i++) {
+                  devices.removeAt(i);
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
