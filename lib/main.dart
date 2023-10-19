@@ -1,3 +1,8 @@
+/*
+  ******************************
+  *  Programmed by Biruk Tomas *
+  ******************************
+*/
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
@@ -27,13 +32,13 @@ class _PrintButtonState extends State<PrintButton> {
 ----------------------------------------
               FOOD RECEIPT              
 ----------------------------------------
-Item                 Quantity    Price  
+Item        Quantity    Price  
 ----------------------------------------
-Burger                    2      5.99 ETB
-Fries                     1      2.99 ETB
-Coke                      2      1.99 ETB
+Burger      2      5.99 ETB
+Fries       1      2.99 ETB
+Coke        2      1.99 ETB
 ----------------------------------------
-Total                           17.95 ETB 
+Total              17.95 ETB 
 ----------------------------------------
 Thank you for your purchase!
 ''';
@@ -75,8 +80,11 @@ Thank you for your purchase!
       );
       return;
     }
-
-    startScan();
+    if (printer == null) {
+      startScan();
+    } else {
+      printReceipt();
+    }
   }
 
   @override
@@ -92,27 +100,21 @@ Thank you for your purchase!
 
     // Listen to scan results
     var subscription = flutterBlue.scanResults.listen((results) async {
-      // if (!devices.isEmpty) {
-      //   for (var i = 0; i < results.length; i++) {
-      //     int index = devices.indexWhere((element) => element == results[i].device.id);
-
-      //     print(index);
-      //   }
-      // }
       // Collect discovered devices into a list
       for (ScanResult result in results) {
         if (!devices.any((device) => device.id == result.device.id) &&
             result.device.name != '') {
           // Check if a device with the same id is already in the list
           devices.add(result.device);
-          if (isDialogShown) {
-            dialogCounter++;
-            // print(dialogCounter);
-            showDeviceListDialog(devices,
-                dialogCounter); // Show the updated device list dialog // Show the updated device list dialog
-          }
+          // if (isDialogShown) {
+          dialogCounter++;
+          // print(dialogCounter);
+          showDeviceListDialog(devices,
+              dialogCounter); // Show the updated device list dialog // Show the updated device list dialog
+          // }
         }
       }
+      // print(results);
     });
   }
 
@@ -137,9 +139,10 @@ Thank you for your purchase!
                     // print('device connected');
                     printer = device;
                     try {
-                      print(printer);
+                      // print(printer);
                       await printer!.connect();
                       Navigator.of(context).pop();
+                      printReceipt();
                     } catch (e) {
                       print('Error connecting to device: $e');
                     }
@@ -151,12 +154,13 @@ Thank you for your purchase!
           actions: <Widget>[
             TextButton(
               child: Text('Close'),
-              onPressed: () {
+              onPressed: () async {
                 Navigator.of(context).pop();
                 flutterBlue.stopScan();
                 for (var i = 0; i < devices.length; i++) {
                   devices.removeAt(i);
                 }
+                await printer!.disconnect();
               },
             ),
           ],
